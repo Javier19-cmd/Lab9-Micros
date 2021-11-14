@@ -23,8 +23,12 @@
 // GLOBAL: funcion llamada desde el host y ejecutada en el device (kernel)
 __global__ void seriedeWallis(double *i, double *n, double *pi)
 {
-	pi = pi * ((i-1)/i) * ((i+1)/i);
-	printf("\n Valor aproximado de PI = %1.16lf% \n", pi);
+
+	for(*i = 3.0; *i<= (*n + 2.0); *i+=2.0){
+		*pi = 4.0;
+		*pi = *pi * ((*i - 1.0) / *i) * ((*i + 1.0) / *i);
+		printf("Valor aproximado del PI: %1.16f\n", *pi);
+	}
 }
 
 // GLOBAL: funcion llamada desde el host y ejecutada en el device (kernel)
@@ -44,8 +48,23 @@ int main(void)
 	cudaStreamCreate(&stream1);
 	cudaStreamCreate(&stream2);
 
-	double n, i         // Number of iterations and control variable 
-   	double pi = 4;
+	double *n, *i;         // Number of iterations and control variable 
+   	double *pi;
+
+	printf("Aproximando el valor de pi por medio de la serie de Wallis");
+	printf("\nIngrese el número de iteraciones: ");
+	scanf("%lf", &n);
+	printf("\nPor favor espere.....");
+
+	for(*i = 3.0; *i<=(*n + 2.0); *i+=2.0){
+		*pi = 4.0;
+
+		*pi = *pi * ((*i - 1.0) / *i) * ((*i + 1.0) / *i);
+
+		printf("%d",*pi);
+	}
+	
+	//seriedeWallis<<<1, SIZE, 0, stream1>>>(n,i,pi);
 	
 	int *a1, *b1, *c1; // host vars to use in stream 1 mem ptrs
 	int *a2, *b2, *c2; // host vars to use in stream 2 mem ptrs
@@ -86,23 +105,20 @@ int main(void)
 	// stream 1
 	cudaMemcpyAsync(dev_a1,a1,SIZE*sizeof(int),cudaMemcpyHostToDevice,stream1);
 	cudaMemcpyAsync(dev_b1,b1,SIZE*sizeof(int),cudaMemcpyHostToDevice,stream1);
-	Kernel1<<<1,SIZE,0,stream1>>>(dev_a1,dev_b1,dev_c1);
+	//Kernel1<<<1,SIZE,0,stream1>>>(dev_a1,dev_b1,dev_c1);
 	cudaMemcpyAsync(c1,dev_c1,SIZE*sizeof(int),cudaMemcpyDeviceToHost,stream1);
 	
 
 	//stream 2
 	cudaMemcpyAsync(dev_a2,a2,SIZE*sizeof(int),cudaMemcpyHostToDevice,stream2);
 	cudaMemcpyAsync(dev_b2,b2,SIZE*sizeof(int),cudaMemcpyHostToDevice,stream2);
-	Kernel2<<<1,SIZE,1,stream2>>>(dev_a2,dev_b2,dev_c2);
+	//Kernel2<<<1,SIZE,1,stream2>>>(dev_a2,dev_b2,dev_c2);
 	cudaMemcpyAsync(c2,dev_c2,SIZE*sizeof(int),cudaMemcpyDeviceToHost,stream2);
 	}
 	cudaStreamSynchronize(stream1); // wait for stream1 to finish
 	cudaStreamSynchronize(stream2); // wait for stream2 to finish
-
-	for(i = 3; i<= (n + 2); i+=2){
-		seriedeWallis<<<i,n>>>(n,i,pi);
-	}
 	
+	/*
 	printf("--- STREAM 1 ---\n");
 	printf( "> Vector a1:\n");
 	for (int i = 0; i < SIZE; i++)
@@ -142,7 +158,7 @@ int main(void)
 		printf("%d ", c2[i]);
 	}
 	printf( "\n");
-
+*/
 	cudaStreamDestroy(stream1); 		// because we care
 	cudaStreamDestroy(stream2); 
 
