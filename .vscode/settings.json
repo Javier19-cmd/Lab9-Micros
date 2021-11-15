@@ -1,4 +1,13 @@
 {
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "CUDA C++: Launch",
+      "type": "cuda-gdb",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/add"
+    }
+  ],
   "C_Cpp_Runner.warnings": [
     "-Wall",
     "-Wextra",

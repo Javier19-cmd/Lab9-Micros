@@ -21,16 +21,17 @@
 
 #define SIZE 3 //Original 3.
 // GLOBAL: funcion llamada desde el host y ejecutada en el device (kernel)
-__global__ void seriedeWallis(double n)
+__global__ void seriedeWallis(double *n)
 {
-	double i;
-	double pi = 4;
+	double *i;
+	double *pi;
 
-	//printf("El número de iteraciones es: %1.16f\n", n);
+	printf("El número de iteraciones es: %1.16f\n", *n);
 
-	for(i = 3; i<= (n + 2); i+=2){
-		pi = pi * ((i - 1) / i) * ((i + 1) / i);
-		printf("Valor aproximado del PI: %1.16f\n", pi);
+	for(*i = 3.0; *i<= (*n + 2.0); *i+=2.0){
+		*pi = 4.0;
+		*pi = *pi * ((*i - 1.0) / *i) * ((*i + 1.0) / *i);
+		printf("Valor aproximado del PI: %1.16f\n", *pi);
 	}
 	//printf(%1.16f, *pi);
 }
@@ -50,8 +51,9 @@ int main(void)
 {
 	cudaStream_t stream1, stream2;
 	cudaStreamCreate(&stream1);
+	cudaStreamCreate(&stream2);
 
-	double n, *i;         // Number of iterations and control variable 
+	double *n, *i;         // Number of iterations and control variable 
    	double *pi;
 
 	printf("Aproximando el valor de pi por medio de la serie de Wallis");
@@ -62,8 +64,10 @@ int main(void)
 	//seriedeWallis<<<1, SIZE, 0, stream1>>>(n,i,pi);
 	
 	int *a1, *b1, *c1; // host vars to use in stream 1 mem ptrs
+	int *a2, *b2, *c2; // host vars to use in stream 2 mem ptrs
 	
 	double *dev_a1, *dev_b1, *dev_c1; // stream 1 mem ptrs
+	int *dev_a2, *dev_b2, *dev_c2; // stream 2 mem ptrs
 	
 	//stream 1 - mem allocation at Global memmory for device and host, in order
 	cudaMalloc( (void**)&dev_a1, SIZE * sizeof(int) );
@@ -74,25 +78,42 @@ int main(void)
 	cudaHostAlloc((void**)&b1,SIZE*sizeof(int),cudaHostAllocDefault);
 	cudaHostAlloc((void**)&c1,SIZE*sizeof(int),cudaHostAllocDefault);
 	
+	//stream 2 - mem allocation at Global memmory for device and host, in order
+	cudaMalloc( (void**)&dev_a2, SIZE * sizeof(int) );
+	cudaMalloc( (void**)&dev_b2, SIZE * sizeof(int) );
+	cudaMalloc( (void**)&dev_c2, SIZE * sizeof(int) );
+	
+	cudaHostAlloc((void**)&a2,SIZE*sizeof(int),cudaHostAllocDefault);
+	cudaHostAlloc((void**)&b2,SIZE*sizeof(int),cudaHostAllocDefault);
+	cudaHostAlloc((void**)&c2,SIZE*sizeof(int),cudaHostAllocDefault);
+
 	// generate data
 	for(int i=0;i<SIZE;i++) 
 	{
 	a1[i] = 1+i;
 	b1[i] = 5+i;
-
+	
+	a2[i] = 3+i;
+	b2[i] = 4+i;
 	}
 	
 	for(int i=0;i < SIZE;i++)
 	{ // loop over data in chunks
 	// stream 1
-	//cudaMemcpyAsync(n,pi,SIZE*sizeof(int),cudaMemcpyHostToDevice,stream1);
+	cudaMemcpyAsync(n,pi,SIZE*sizeof(int),cudaMemcpyHostToDevice,stream1);
 	//cudaMemcpyAsync(dev_b1,b1,SIZE*sizeof(int),cudaMemcpyHostToDevice,stream1);
 	seriedeWallis<<<1,SIZE,0,stream1>>>(n); //Mandando al kernel la info.
 	printf("Si llegué");
 	//cudaMemcpyAsync(c1,dev_c1,SIZE*sizeof(int),cudaMemcpyDeviceToHost,stream1);
 
+	//stream 2
+	cudaMemcpyAsync(dev_a2,a2,SIZE*sizeof(int),cudaMemcpyHostToDevice,stream2);
+	cudaMemcpyAsync(dev_b2,b2,SIZE*sizeof(int),cudaMemcpyHostToDevice,stream2);
+	//Kernel2<<<1,SIZE,1,stream2>>>(dev_a2,dev_b2,dev_c2);
+	cudaMemcpyAsync(c2,dev_c2,SIZE*sizeof(int),cudaMemcpyDeviceToHost,stream2);
 	}
 	cudaStreamSynchronize(stream1); // wait for stream1 to finish
+	cudaStreamSynchronize(stream2); // wait for stream2 to finish
 	
 	/*
 	printf("--- STREAM 1 ---\n");
@@ -135,7 +156,8 @@ int main(void)
 	}
 	printf( "\n");
 */
-	cudaStreamDestroy(stream1); 		// because we care 
+	cudaStreamDestroy(stream1); 		// because we care
+	cudaStreamDestroy(stream2); 
 
 	return 0;
 }
