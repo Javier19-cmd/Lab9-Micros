@@ -36,14 +36,16 @@ __global__ void seriedeWallis(double n)
 }
 
 // GLOBAL: funcion llamada desde el host y ejecutada en el device (kernel)
-__global__ void Kernel2( int *d, int *e, int *f)
+__global__ void seriedeNilakantha(double n)
 {
-	int myID = threadIdx.x + blockDim.x * blockIdx.x;
-	// Solo trabajan N hilos
-	if (myID < SIZE)
-	{
-		f[myID] = d[myID] * e[myID];
-	}
+	double n, i;
+	double pi = 3; 
+	int s = 1;  
+	 for(i = 2; i <= n*2; i += 2){
+		 pi = pi + s * (4 / (i * (i + 1) * (i + 2)));
+ 		 s = -s;
+ 	}
+
 }
 
 int main(void) 
