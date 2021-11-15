@@ -85,56 +85,13 @@ int main(void)
 	for(int i=0;i < SIZE;i++)
 	{ // loop over data in chunks
 	// stream 1
-	//cudaMemcpyAsync(n,pi,SIZE*sizeof(int),cudaMemcpyHostToDevice,stream1);
-	//cudaMemcpyAsync(dev_b1,b1,SIZE*sizeof(int),cudaMemcpyHostToDevice,stream1);
 	seriedeWallis<<<1,SIZE,0,stream1>>>(n); //Mandando al kernel la info.
-	printf("Si llegué");
-	//cudaMemcpyAsync(c1,dev_c1,SIZE*sizeof(int),cudaMemcpyDeviceToHost,stream1);
+	
 
 	}
 	cudaStreamSynchronize(stream1); // wait for stream1 to finish
 	
-	/*
-	printf("--- STREAM 1 ---\n");
-	printf( "> Vector a1:\n");
-	for (int i = 0; i < SIZE; i++)
-	{
-		printf("%d ", a1[i]);
-	}
 
-	printf( "> \n Vector b1:\n");
-	for (int i = 0; i < SIZE; i++)
-	{
-		printf("%d ", b1[i]);
-	}
-
-	printf( "> \n Vector c1:\n");
-	for (int i = 0; i < SIZE; i++)
-	{
-		printf("%d ", c1[i]);
-	}
-	printf( "--- STREAM 2 ---\n");
-
-	printf("\n");
-	printf( "> Vector a2:\n");
-	for (int i = 0; i < SIZE; i++)
-	{
-		printf("%d ", a2[i]);
-	}
-
-	printf( "> \n Vector b2:\n");
-	for (int i = 0; i < SIZE; i++)
-	{
-		printf("%d ", b2[i]);
-	}
-
-	printf( "> \n Vector c2:\n");
-	for (int i = 0; i < SIZE; i++)
-	{
-		printf("%d ", c2[i]);
-	}
-	printf( "\n");
-*/
 	cudaStreamDestroy(stream1); 		// because we care 
 
 	return 0;
